@@ -1,0 +1,28 @@
+Table Accounts {
+  account_id integer [primary key]
+  account_name varchar
+  account_type varchar [note: 'Eg Assets or Liabilities']
+  created_at timestamp [note: 'When the account was created']
+  currency varchar
+}
+
+Table Transactions {
+  from_account integer
+  to_account integer
+  amount integer
+  transaction_date timestamp
+}
+
+Table AccountRelationships {
+  parent_account_id integer
+  child_account_id integer
+}
+
+Ref: Transactions.from_account < Accounts.account_id
+
+Ref: Transactions.to_account < Accounts.account_id
+
+Ref: AccountRelationships.parent_account_id < Accounts.account_id
+
+Ref: AccountRelationships.child_account_id < Accounts.account_id
+
