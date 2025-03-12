@@ -7,11 +7,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	"github.com/golang-migrate/migrate/v4/database/sqlite"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/mattn/go-sqlite3"
+
+	"github.com/gin-gonic/gin"
 	gormSqlite3 "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -33,16 +34,16 @@ func Start() int {
 		logger.Error("PHINANCES_DATABASE_PASSWORD not set")
 		return 1
 	}
-	dbConnectionString := fmt.Sprintf("sqlite3://%s?_pragma=cipher_version(4)&key=%s", DatabaseFilename, databasePassword)
 
-	db, err := sql.Open("sqlite3", DatabaseFilename)
+	dbConnectionString := fmt.Sprintf("file:%s?_pragma_key=%s", DatabaseFilename, databasePassword)
 
+	db, err := sql.Open("sqlite3", dbConnectionString)
 	if err != nil {
 		logger.Error("Failed to open database: " + err.Error())
 		return 1
 	}
 
-	migrateDriver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
+	migrateDriver, err := sqlite.WithInstance(db, &sqlite.Config{})
 	if err != nil {
 		logger.Error("Failed to open database for migration: " + err.Error())
 		return 1
@@ -51,7 +52,8 @@ func Start() int {
 	// Apply database migrations before starting
 	migrateInstance, err := migrate.NewWithDatabaseInstance(
 		"file://"+DBMigrationsPath,
-		"ql", migrateDriver,
+		"sqlite3",
+		migrateDriver,
 	)
 	if err != nil {
 		logger.Error("Failed to open database for migration: " + err.Error())
@@ -62,10 +64,9 @@ func Start() int {
 		return 1
 	}
 	logger.Info("Applied database migrations")
-	db.Close()
 
 	logger.Info("Opening database for gorm: " + dbConnectionString)
-	gormDB, err := gorm.Open(gormSqlite3.Open(DatabaseFilename), &gorm.Config{})
+	gormDB, err := gorm.Open(gormSqlite3.Open(dbConnectionString), &gorm.Config{})
 	if err != nil {
 		// Only throw error if the migrations failed due to 'no change'
 		if !strings.Contains(err.Error(), "no change") {
