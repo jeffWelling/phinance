@@ -1,19 +1,7 @@
-CREATE TABLE Accounts (
-    account_id integer PRIMARY KEY,
-    account_name varchar,
-    account_type varchar,
-    created_at timestamp,
-    currency varchar
-);
-
-CREATE TABLE Transactions (
-    from_account integer,
-    to_account integer,
-    amount integer,
-    transaction_date timestamp
-);
-
-CREATE TABLE AccountRelationships (
-    parent_account_id integer,
-    child_account_id integer
+CREATE TABLE IF NOT EXISTS accounts (
+    account_id integer,
+    account_name text,
+    account_type text,
+    created_at text,
+    currency text
 );

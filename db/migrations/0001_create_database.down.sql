@@ -1,3 +1,1 @@
-DROP TABLE Accounts;
-DROP TABLE Transactions;
-DROP TABLE AccountRelationships;
+DROP TABLE IF EXISTS accounts;
